@@ -1,0 +1,730 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#f59e0b">
+  <meta name="description"
+        content="Discover OTXS services and useful web applications in one place.">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <title>OTXS App Store | Discover and Explore</title>
+
+  <style>
+    :root {
+      --primary: #f59e0b;
+      --secondary: #ea580c;
+      --background: #101114;
+      --surface: #1b1d22;
+      --text: #f9fafb;
+      --muted: #a1a1aa;
+      --border: #303239;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(16, 17, 20, 0.97);
+      border-bottom: 1px solid var(--border);
+      padding: 15px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand span {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .hero {
+      padding: 70px 20px 35px;
+      text-align: center;
+      background:
+        radial-gradient(ellipse at top, #3b2910 0%, transparent 65%);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      color: var(--primary);
+      border: 1px solid #76521c;
+      border-radius: 30px;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.3rem, 6vw, 4rem);
+      line-height: 1.15;
+      letter-spacing: -2px;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 span {
+      color: var(--primary);
+    }
+
+    .hero p {
+      max-width: 620px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .search-area {
+      max-width: 680px;
+      margin: 30px auto 0;
+      padding: 0 15px;
+    }
+
+    .search-area input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search-area input:focus {
+      border-color: var(--primary);
+    }
+
+    .categories {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 20px 20px 35px;
+    }
+
+    .category {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 30px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
+
+    .category:hover,
+    .category.active {
+      background: var(--primary);
+      color: #171717;
+      border-color: var(--primary);
+    }
+
+    .section {
+      padding: 20px 6% 55px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 15px;
+    }
+
+    .section-heading h2 {
+      font-size: 1.65rem;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .app-card {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .app-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+    }
+
+    .app-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 15px;
+    }
+
+    .app-icon {
+      width: 55px;
+      height: 55px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      background: #302719;
+      border-radius: 14px;
+      font-size: 1.8rem;
+    }
+
+    .app-title {
+      font-size: 1.05rem;
+      overflow-wrap: anywhere;
+    }
+
+    .app-category {
+      color: var(--primary);
+      font-size: 0.78rem;
+    }
+
+    .app-description {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 22px;
+      flex-grow: 1;
+    }
+
+    .app-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-block;
+      border: 1px solid var(--border);
+      padding: 9px 15px;
+      border-radius: 8px;
+      font-size: 0.87rem;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .button-primary {
+      background: var(--primary);
+      color: #171717;
+      border-color: var(--primary);
+      font-weight: 700;
+    }
+
+    .button-primary:hover {
+      background: #fbbf24;
+    }
+
+    .button-secondary {
+      color: var(--muted);
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .suggestion {
+      margin: 0 6% 55px;
+      padding: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .suggestion h2 {
+      margin-bottom: 6px;
+      font-size: 1.3rem;
+    }
+
+    .suggestion p {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 6%;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer a:hover {
+      color: var(--primary);
+    }
+
+    #installApp {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .app-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        padding: 14px 5%;
+      }
+
+      .nav-links {
+        gap: 12px;
+      }
+
+      .nav-links a {
+        font-size: 0.8rem;
+      }
+
+      .hero {
+        padding-top: 45px;
+      }
+
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding-left: 5%;
+        padding-right: 5%;
+      }
+
+      .suggestion {
+        margin-left: 5%;
+        margin-right: 5%;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="navbar">
+    <a class="brand" href="https://home.otxs.de">
+      OTXS<span>.</span>DE
+    </a>
+
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="https://home.otxs.de">Home</a>
+      <a href="#apps">Apps</a>
+      <a href="#submit">Suggest an App</a>
+
+      <button class="button button-secondary"
+              id="installApp"
+              type="button">
+        Install App
+      </button>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="hero">
+      <span class="eyebrow">THE OTXS APP DIRECTORY</span>
+
+      <h1>
+        Everything you need.<br>
+        <span>One place.</span>
+      </h1>
+
+      <p>
+        Discover OTXS services and useful web applications.
+        Explore, open, and find the right tools for your needs.
+      </p>
+
+      <div class="search-area">
+        <input
+          type="search"
+          id="appSearch"
+          placeholder="Search apps, services, or categories..."
+          aria-label="Search applications">
+      </div>
+    </section>
+
+    <nav class="categories" aria-label="Filter apps by category">
+      <button class="category active" data-category="All">
+        All Apps
+      </button>
+
+      <button class="category" data-category="Travel">
+        Travel
+      </button>
+
+      <button class="category" data-category="Rides">
+        Rides
+      </button>
+
+      <button class="category" data-category="Adventure">
+        Adventure
+      </button>
+
+      <button class="category" data-category="Stays">
+        Stays
+      </button>
+
+      <button class="category" data-category="Productivity">
+        Productivity
+      </button>
+
+      <button class="category" data-category="External">
+        External Apps
+      </button>
+    </nav>
+
+    <section class="section" id="apps">
+      <div class="section-heading">
+        <div>
+          <h2>Explore Apps</h2>
+          <p id="appCount">Discover available services.</p>
+        </div>
+      </div>
+
+      <div class="app-grid" id="appGrid"></div>
+    </section>
+
+    <section class="suggestion" id="submit">
+      <div>
+        <h2>Know a useful web app?</h2>
+
+        <p>
+          Have a suggestion for an application that belongs in
+          this directory? Send us your recommendation.
+        </p>
+      </div>
+
+      <a class="button button-primary"
+         href="mailto:otxs.de@gmail.com?subject=OTXS%20App%20Suggestion">
+        Suggest an App
+      </a>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>
+      © <span id="year"></span> OTXS — Discover and Explore
+    </span>
+
+    <div>
+      <a href="https://home.otxs.de">OTXS Home</a>
+      &nbsp; · &nbsp;
+      <a href="mailto:otxs.de@gmail.com">Contact</a>
+    </div>
+  </footer>
+
+  <script>
+    /*
+      APP DIRECTORY
+
+      Add new apps to this array.
+
+      Available categories:
+      Travel, Rides, Adventure, Stays, Productivity, External
+
+      OTXS apps use owner: "OTXS".
+      Third-party apps use owner: "External".
+    */
+
+    const apps = [
+      {
+        name: "Ride Companion",
+        description:
+          "Explore ride opportunities and connect with travel companions.",
+        category: "Rides",
+        icon: "🏍️",
+        url: "https://ride-companion.otxs.de",
+        owner: "OTXS"
+      },
+      {
+        name: "OTXS Adventures",
+        description:
+          "Discover destinations, outdoor adventures, and places to explore.",
+        category: "Adventure",
+        icon: "🏔️",
+        url: "https://adventure.otxs.de",
+        owner: "OTXS"
+      },
+      {
+        name: "OTXS Stays",
+        description:
+          "Explore accommodation and stay-related services.",
+        category: "Stays",
+        icon: "🏡",
+        url: "https://stays.otxs.de",
+        owner: "OTXS"
+      },
+
+        {
+          name: "OTXS Travel",
+          description:
+            "Discover destinations, nearby attractions, and travel experiences.",
+          category: "Travel",
+          icon: "🧭",
+          url: "https://travel.otxs.de/",
+          owner: "OTXS"
+        }
+
+      /*
+      EXAMPLE THIRD-PARTY APP
+
+      Uncomment and edit this entry when you want to add one.
+
+      ,
+      {
+        name: "Example Web App",
+        description: "A useful external web application.",
+        category: "External",
+        icon: "🌐",
+        url: "https://example.com",
+        owner: "External"
+      }
+      */
+    ];
+
+    const appGrid = document.getElementById("appGrid");
+    const appSearch = document.getElementById("appSearch");
+    const appCount = document.getElementById("appCount");
+
+    const categoryButtons =
+      document.querySelectorAll(".category");
+
+    let activeCategory = "All";
+
+    function isValidUrl(value) {
+      try {
+        const url = new URL(value);
+
+        return url.protocol === "https:" ||
+               url.protocol === "http:";
+      } catch {
+        return false;
+      }
+    }
+
+    function renderApps() {
+      const search =
+        appSearch.value.trim().toLowerCase();
+
+      const filteredApps = apps.filter(app => {
+        const isExternal = app.owner !== "OTXS";
+
+        const matchesCategory =
+          activeCategory === "All" ||
+          app.category === activeCategory ||
+          (activeCategory === "External" && isExternal);
+
+        const searchableText =
+          `${app.name} ${app.description} ${app.category} ${app.owner}`
+          .toLowerCase();
+
+        return matchesCategory &&
+               searchableText.includes(search) &&
+               isValidUrl(app.url);
+      });
+
+      appGrid.replaceChildren();
+
+      appCount.textContent =
+        `${filteredApps.length} ${
+          filteredApps.length === 1 ? "app" : "apps"
+        } available`;
+
+      if (filteredApps.length === 0) {
+        const empty = document.createElement("div");
+
+        empty.className = "empty-state";
+        empty.textContent =
+          "No apps found. Try another search or category.";
+
+        appGrid.appendChild(empty);
+        return;
+      }
+
+      filteredApps.forEach(app => {
+        const card = document.createElement("article");
+        card.className = "app-card";
+
+        const top = document.createElement("div");
+        top.className = "app-top";
+
+        const icon = document.createElement("div");
+        icon.className = "app-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = app.icon;
+
+        const details = document.createElement("div");
+
+        const title = document.createElement("h3");
+        title.className = "app-title";
+        title.textContent = app.name;
+
+        const category = document.createElement("div");
+        category.className = "app-category";
+        category.textContent =
+          `${app.category} · ${app.owner}`;
+
+        details.append(title, category);
+        top.append(icon, details);
+
+        const description = document.createElement("p");
+        description.className = "app-description";
+        description.textContent = app.description;
+
+        const actions = document.createElement("div");
+        actions.className = "app-actions";
+
+        const open = document.createElement("a");
+        open.className = "button button-primary";
+        open.href = app.url;
+        open.textContent = "Open App";
+
+        if (app.owner !== "OTXS") {
+          open.target = "_blank";
+          open.rel = "noopener noreferrer";
+        }
+
+        actions.appendChild(open);
+        card.append(top, description, actions);
+
+        appGrid.appendChild(card);
+      });
+    }
+
+    appSearch.addEventListener("input", renderApps);
+
+    categoryButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        activeCategory = button.dataset.category;
+
+        categoryButtons.forEach(item => {
+          const isActive = item === button;
+
+          item.classList.toggle("active", isActive);
+
+          item.setAttribute(
+            "aria-pressed",
+            String(isActive)
+          );
+        });
+
+        renderApps();
+      });
+    });
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    // PWA installation button
+    let installPrompt = null;
+
+    const installButton =
+      document.getElementById("installApp");
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+
+      installPrompt = event;
+      installButton.style.display = "inline-block";
+    });
+
+    installButton.addEventListener("click", async () => {
+      if (!installPrompt) return;
+
+      installPrompt.prompt();
+
+      await installPrompt.userChoice;
+
+      installPrompt = null;
+      installButton.style.display = "none";
+    });
+
+    // Register the service worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/service-worker.js")
+          .catch(error => {
+            console.error(
+              "Service worker registration failed:",
+              error
+            );
+          });
+      });
+    }
+
+    renderApps();
+  </script>
+
+</body>
+</html>
+
