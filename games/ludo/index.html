@@ -1,0 +1,828 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101820">
+<title>Classic Ludo | OTXS Games</title>
+<style>
+:root {
+  --red:#e84b50;
+  --green:#159c69;
+  --yellow:#efc33d;
+  --blue:#347bd1;
+  --ink:#26333a;
+  --line:#d4d8d4;
+  --bg:#101820;
+  --panel:#192832;
+  --accent:#ffd166;
+  --white:#fffdf6;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;
+  background:radial-gradient(ellipse at top,#243843,#101820 72%);
+  color:#f6f5f0;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+button,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible{
+  outline:3px solid var(--accent);outline-offset:3px
+}
+header{text-align:center;padding:22px 12px 15px}
+.brand{font-size:12px;font-weight:900;letter-spacing:4px;color:var(--accent)}
+h1{font-size:clamp(30px,5vw,43px);margin:5px 0}
+.subtitle{font-size:13px;color:#b8c3c8}
+main{
+  max-width:1060px;margin:auto;padding:12px 16px 30px;
+  display:grid;grid-template-columns:minmax(0,640px) 285px;
+  gap:22px;align-items:center;justify-content:center
+}
+.board-shell{
+  width:100%;padding:9px;background:#e8e8df;
+  border-radius:8px;box-shadow:0 18px 50px #0005
+}
+.board{
+  width:100%;aspect-ratio:1;display:grid;
+  grid-template-columns:repeat(15,minmax(0,1fr));
+  grid-template-rows:repeat(15,minmax(0,1fr));
+  background:var(--white);border:1px solid #7b817e;
+  overflow:hidden
+}
+.cell{
+  min-width:0;min-height:0;position:relative;
+  border:.5px solid var(--line);
+  background:var(--white);
+  display:flex;align-items:center;justify-content:center
+}
+.cell.red-base{background:#f8c5c4}
+.cell.green-base{background:#b8e5cf}
+.cell.yellow-base{background:#f8e8a7}
+.cell.blue-base{background:#c4dcf7}
+.cell.start-red{background:var(--red)}
+.cell.start-green{background:var(--green)}
+.cell.start-yellow{background:var(--yellow)}
+.cell.start-blue{background:var(--blue)}
+.cell.lane-red{background:#ef8585}
+.cell.lane-green{background:#75cfa7}
+.cell.lane-yellow{background:#f3d66f}
+.cell.lane-blue{background:#86b5ed}
+.cell.safe:after{
+  content:"★";position:absolute;
+  font-size:clamp(7px,1.5vw,15px);
+  color:#646b69;line-height:1;pointer-events:none
+}
+.cell.start-red:after,.cell.start-green:after,
+.cell.start-yellow:after,.cell.start-blue:after{display:none}
+.cell.yard-slot{background:#fffdf6;border:2px solid white}
+.cell.yard-slot:before{
+  content:"";position:absolute;inset:5%;
+  border-radius:50%;border:1px solid #d1d4cf
+}
+.cell.center-red{background:var(--red)}
+.cell.center-green{background:var(--green)}
+.cell.center-yellow{background:var(--yellow)}
+.cell.center-blue{background:var(--blue)}
+.cell.center-goal{
+  background:conic-gradient(
+    from -45deg,
+    var(--green) 0deg 90deg,
+    var(--yellow) 90deg 180deg,
+    var(--blue) 180deg 270deg,
+    var(--red) 270deg 360deg
+  );
+  border:1px solid #6c7471
+}
+.base-label{
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(6px,1.2vw,11px);font-weight:1000;
+  letter-spacing:.5px;color:#27353a;pointer-events:none;
+  z-index:1
+}
+.token{
+  position:relative;z-index:3;
+  width:88%;height:88%;min-width:0;min-height:0;padding:0;
+  border-radius:50%;border:1px solid #fff;
+  box-shadow:inset 0 -2px 0 #0002,0 1px 2px #0005;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:clamp(7px,1.4vw,13px);
+  font-weight:900;line-height:1;text-shadow:0 1px 2px #0005
+}
+.token.red{background:var(--red)}
+.token.green{background:var(--green)}
+.token.yellow{background:var(--yellow);color:#28333a;text-shadow:none}
+.token.blue{background:var(--blue)}
+.token.legal{
+  outline:3px solid #20292e;
+  box-shadow:0 0 0 3px var(--accent),0 0 10px #0005;
+  animation:pulse .7s infinite alternate
+}
+.token:disabled{cursor:default}
+@keyframes pulse{to{transform:scale(1.12)}}
+.token-stack{
+  position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;flex-wrap:wrap;gap:0;z-index:3
+}
+.token-stack .token{width:48%;height:48%;font-size:clamp(6px,1vw,10px)}
+.token-stack .token:only-child{width:88%;height:88%}
+.sidebar{
+  background:var(--panel);border:1px solid #364b55;
+  border-radius:17px;padding:18px
+}
+.sidebar h2{font-size:19px;margin:0 0 13px}
+.field-label{
+  display:block;font-size:11px;font-weight:800;
+  letter-spacing:.7px;color:#b8c3c8;margin:12px 0 6px
+}
+.mode-select{
+  width:100%;padding:11px;border-radius:9px;
+  background:#223640;color:#fff;border:1px solid #40535c
+}
+.turn-card{
+  padding:13px;border-radius:12px;margin-top:13px;
+  background:#223640;border:1px solid #40535c
+}
+.muted{font-size:12px;color:#b8c3c8}
+.player-name{font-size:22px;font-weight:900;margin:3px 0 8px}
+.player-name.red,.score-name.red{color:#ff777a}
+.player-name.green,.score-name.green{color:#52d6a0}
+.player-name.yellow,.score-name.yellow{color:#ffd166}
+.player-name.blue,.score-name.blue{color:#75b4ff}
+.status{font-size:13px;line-height:1.5;color:#d4dce0;min-height:38px}
+.dice-row{display:flex;align-items:center;gap:13px;margin:17px 0}
+.die{
+  width:65px;height:65px;flex-shrink:0;
+  border:2px solid #d7d6cb;border-radius:13px;
+  background:#fffdf6;color:#24343b;
+  font-size:40px;font-weight:800;
+  box-shadow:0 4px 0 #c3c3b7
+}
+.die:disabled{opacity:.65;cursor:default}
+.roll-value{font-size:20px;font-weight:900;margin-top:4px}
+.primary,.secondary{
+  width:100%;padding:12px;border-radius:10px;
+  font-weight:850;margin-top:8px;border:0
+}
+.primary{background:var(--accent);color:#1c2930}
+.secondary{background:#293e49;color:#f6f5f0;border:1px solid #435862}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.score-list{margin-top:16px;display:grid;gap:7px}
+.score{
+  padding:9px 10px;background:#223640;border-radius:8px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;gap:5px
+}
+.score-name{font-weight:900}
+.score.inactive{opacity:.4}
+.rules{
+  border-top:1px solid #394d56;padding-top:13px;margin-top:15px;
+  color:#b8c3c8;font-size:12px;line-height:1.7
+}
+.rules strong{color:#fff}
+footer{text-align:center;padding:5px 12px 24px;color:#84969f;font-size:12px}
+@media(max-width:790px){
+  main{grid-template-columns:minmax(0,600px);gap:15px;padding:8px 12px 24px}
+  .sidebar{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}
+  .sidebar h2,.mode-wrap,.score-list,.rules{grid-column:1/-1}
+  .turn-card{margin-top:0}
+  .dice-row{margin:8px 0}
+  .die{width:58px;height:58px;font-size:36px}
+}
+@media(max-width:390px){
+  .sidebar{grid-template-columns:1fr}
+  .sidebar h2,.mode-wrap,.score-list,.rules{grid-column:auto}
+  .board-shell{padding:5px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">OTXS · GAMES</div>
+  <h1>Classic Ludo</h1>
+  <div class="subtitle">The traditional board game · Play together on one device</div>
+</header>
+
+<main>
+  <section class="board-shell">
+    <div id="board" class="board" aria-label="Classic Ludo board"></div>
+  </section>
+
+  <aside class="sidebar">
+    <h2>Game control</h2>
+
+    <div class="mode-wrap">
+      <label class="field-label" for="gameMode">GAME MODE</label>
+      <select id="gameMode" class="mode-select">
+        <option value="four">4 Players — One Colour Each</option>
+        <option value="teams">2 Players — Two Colours Each</option>
+        <option value="diagonal">2 Players — One Colour Each</option>
+      </select>
+    </div>
+
+    <div class="turn-card">
+      <div id="turnLabel" class="muted">CURRENT TURN</div>
+      <div id="playerName" class="player-name red">Red</div>
+      <div id="status" class="status" aria-live="polite">Roll the dice to begin.</div>
+    </div>
+
+    <div>
+      <div class="dice-row">
+        <button id="die" class="die" aria-label="Roll dice">⚄</button>
+        <div>
+          <div class="muted">DICE ROLL</div>
+          <div id="rollValue" class="roll-value">—</div>
+          <div class="muted">Choose a highlighted token.</div>
+        </div>
+      </div>
+      <button id="rollBtn" class="primary">Roll dice</button>
+      <button id="newBtn" class="secondary">New game</button>
+      <button id="undoBtn" class="secondary" disabled>Undo last action</button>
+    </div>
+
+    <div id="scores" class="score-list"></div>
+
+    <div class="rules">
+      <strong>How to play</strong><br>
+      • Roll a 6 to leave your base.<br>
+      • A 6 gives you another roll.<br>
+      • Capture opponents by landing on their token.<br>
+      • Star squares are safe.<br>
+      • Reach home with an exact roll.<br>
+      • First to finish all their tokens wins.
+    </div>
+  </aside>
+</main>
+
+<footer>OTXS Games · Discover and Explore</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const players = [
+    {name:"Red",color:"red",start:0},
+    {name:"Green",color:"green",start:13},
+    {name:"Yellow",color:"yellow",start:26},
+    {name:"Blue",color:"blue",start:39}
+  ];
+
+  // Shared 52-square clockwise track.
+  const track = [
+    [6,1],[6,2],[6,3],[6,4],[6,5],
+    [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
+    [0,7],[0,8],
+    [1,8],[2,8],[3,8],[4,8],[5,8],
+    [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
+    [7,14],
+    [8,14],[8,13],[8,12],[8,11],[8,10],[8,9],
+    [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
+    [14,7],[14,6],
+    [13,6],[12,6],[11,6],[10,6],[9,6],
+    [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
+    [7,0],[6,0]
+  ];
+
+  // Private five-square home lanes, ending at the centre.
+  const lanes = [
+    [[7,1],[7,2],[7,3],[7,4],[7,5]],       // Red
+    [[1,7],[2,7],[3,7],[4,7],[5,7]],       // Green
+    [[7,13],[7,12],[7,11],[7,10],[7,9]],   // Yellow
+    [[13,7],[12,7],[11,7],[10,7],[9,7]]    // Blue
+  ];
+
+  const safeSquares = new Set([0,8,13,21,26,34,39,47]);
+
+  const baseSlots = [
+    [[1,1],[1,4],[4,1],[4,4]],       // Red
+    [[1,10],[1,13],[4,10],[4,13]],   // Green
+    [[10,10],[10,13],[13,10],[13,13]],// Yellow
+    [[10,1],[10,4],[13,1],[13,4]]    // Blue
+  ];
+
+  const board = document.getElementById("board");
+  const gameMode = document.getElementById("gameMode");
+  const turnLabel = document.getElementById("turnLabel");
+  const playerName = document.getElementById("playerName");
+  const status = document.getElementById("status");
+  const die = document.getElementById("die");
+  const rollValue = document.getElementById("rollValue");
+  const rollBtn = document.getElementById("rollBtn");
+  const newBtn = document.getElementById("newBtn");
+  const undoBtn = document.getElementById("undoBtn");
+  const scores = document.getElementById("scores");
+
+  const cellAt = new Map();
+  const allCells = [];
+  const face = ["","⚀","⚁","⚂","⚃","⚄","⚅"];
+
+  let state;
+  let undoState = null;
+  let timer = null;
+
+  const key = (r,c) => r + "," + c;
+  const clone = obj => JSON.parse(JSON.stringify(obj));
+
+  function mode() {
+    return gameMode.value;
+  }
+
+  // A colour's controlling player.
+  function ownerOf(colorIndex) {
+    if (mode() === "teams") {
+      return colorIndex === 0 || colorIndex === 2 ? 0 : 1;
+    }
+    if (mode() === "diagonal") {
+      return colorIndex === 0 ? 0 : 1;
+    }
+    return colorIndex;
+  }
+
+  function activeColors() {
+    if (mode() === "diagonal") return [0,2];
+    return [0,1,2,3];
+  }
+
+  function nextColor(current) {
+    const active = activeColors();
+    const i = active.indexOf(current);
+    return active[(i + 1) % active.length];
+  }
+
+  function sameTeam(a,b) {
+    return mode() === "teams" && ownerOf(a) === ownerOf(b);
+  }
+
+  function freshState() {
+    return {
+      tokens:players.map(()=>[-1,-1,-1,-1]),
+      current:0,
+      roll:null,
+      legal:[],
+      consecutiveSixes:0,
+      finished:false,
+      winner:null,
+      message:"Red starts. Roll the dice!"
+    };
+  }
+
+  function remember() {
+    undoState = clone(state);
+    undoBtn.disabled = false;
+  }
+
+  function setMessage(text) {
+    state.message = text;
+    status.textContent = text;
+  }
+
+  function addCell(r,c,cls) {
+    const el = document.createElement("div");
+    el.className = "cell " + (cls || "");
+    el.style.gridRow = String(r + 1);
+    el.style.gridColumn = String(c + 1);
+    board.appendChild(el);
+    cellAt.set(key(r,c),el);
+    allCells.push(el);
+    return el;
+  }
+
+  function inBase(r,c) {
+    return (r < 6 && c < 6) ||
+           (r < 6 && c > 8) ||
+           (r > 8 && c > 8) ||
+           (r > 8 && c < 6);
+  }
+
+  function buildBoard() {
+    board.innerHTML = "";
+    cellAt.clear();
+    allCells.length = 0;
+
+    const trackIndex = new Map();
+    track.forEach((p,i)=>trackIndex.set(key(p[0],p[1]),i));
+
+    const laneColor = new Map();
+    lanes.forEach((lane,pi)=>{
+      lane.forEach(p=>laneColor.set(key(p[0],p[1]),pi));
+    });
+
+    const startColor = new Map();
+    players.forEach((p,pi)=>{
+      const point = track[p.start];
+      startColor.set(key(point[0],point[1]),pi);
+    });
+
+    for (let r=0;r<15;r++) {
+      for (let c=0;c<15;c++) {
+        let cls = "";
+
+        if (inBase(r,c)) {
+          if (r < 6 && c < 6) cls = "red-base";
+          else if (r < 6 && c > 8) cls = "green-base";
+          else if (r > 8 && c > 8) cls = "yellow-base";
+          else cls = "blue-base";
+        }
+
+        if (trackIndex.has(key(r,c))) {
+          const idx = trackIndex.get(key(r,c));
+          cls = "path" + (safeSquares.has(idx) ? " safe" : "");
+        }
+
+        if (laneColor.has(key(r,c))) {
+          cls = "lane-" + players[laneColor.get(key(r,c))].color;
+        }
+
+        if (startColor.has(key(r,c))) {
+          cls = "start-" + players[startColor.get(key(r,c))].color;
+        }
+
+        if (r >= 6 && r <= 8 && c >= 6 && c <= 8) cls = "center-neutral";
+        if (r === 6 && c === 7) cls = "center-green";
+        if (r === 7 && c === 6) cls = "center-red";
+        if (r === 7 && c === 8) cls = "center-yellow";
+        if (r === 8 && c === 7) cls = "center-blue";
+        if (r === 7 && c === 7) cls = "center-goal";
+
+        const cell = addCell(r,c,cls);
+
+        players.forEach((p,pi)=>{
+          const si = baseSlots[pi].findIndex(([sr,sc])=>sr===r&&sc===c);
+          if (si !== -1) {
+            cell.classList.add("yard-slot");
+            cell.dataset.basePlayer = String(pi);
+            cell.dataset.baseToken = String(si);
+          }
+        });
+      }
+    }
+
+    [
+      {r:0,c:0,text:"RED"},
+      {r:0,c:9,text:"GREEN"},
+      {r:9,c:9,text:"YELLOW"},
+      {r:9,c:0,text:"BLUE"}
+    ].forEach(({r,c,text})=>{
+      const label = document.createElement("div");
+      label.className = "base-label";
+      label.textContent = text;
+      label.style.gridRow = (r+1) + " / span 6";
+      label.style.gridColumn = (c+1) + " / span 6";
+      board.appendChild(label);
+    });
+  }
+
+  // Token progress: -1 = base, 0..51 = shared track,
+  // 52..56 = private lane, 57 = home.
+  function progressCoord(pi,progress) {
+    if (progress < 0) return null;
+    if (progress <= 51) {
+      const p = track[(players[pi].start + progress) % 52];
+      return [p[0],p[1]];
+    }
+    if (progress <= 56) {
+      const p = lanes[pi][progress-52];
+      return [p[0],p[1]];
+    }
+    return [7,7];
+  }
+
+  function canMove(pi,ti,roll) {
+    const progress = state.tokens[pi][ti];
+    if (progress === 57) return false;
+    if (progress === -1) return roll === 6;
+    return progress + roll <= 57;
+  }
+
+  function legalMoves(pi,roll) {
+    return state.tokens[pi]
+      .map((_,ti)=>canMove(pi,ti,roll)?ti:-1)
+      .filter(ti=>ti!==-1);
+  }
+
+  function isSafe(pi,progress) {
+    if (progress < 0 || progress > 51) return true;
+    return safeSquares.has((players[pi].start + progress) % 52);
+  }
+
+  function captureOpponents(pi,progress) {
+    if (progress < 0 || progress > 51 || isSafe(pi,progress)) return [];
+
+    const landing = (players[pi].start + progress) % 52;
+    const victims = [];
+
+    players.forEach((p,oi)=>{
+      if (oi === pi || sameTeam(pi,oi)) return;
+      // In diagonal mode only Red and Yellow are active.
+      if (!activeColors().includes(oi)) return;
+
+      state.tokens[oi].forEach((op,ti)=>{
+        if (op < 0 || op > 51 || isSafe(oi,op)) return;
+        if ((players[oi].start + op) % 52 === landing) {
+          victims.push({pi:oi,ti});
+        }
+      });
+    });
+
+    victims.forEach(v=>state.tokens[v.pi][v.ti] = -1);
+    return victims;
+  }
+
+  function makeToken(pi,ti) {
+    const token = document.createElement("button");
+    token.type = "button";
+    token.className = "token " + players[pi].color;
+    token.textContent = String(ti+1);
+    token.title = players[pi].name + " token " + (ti+1);
+    token.setAttribute("aria-label",token.title);
+
+    const legal = pi === state.current &&
+      state.roll !== null && state.legal.includes(ti);
+
+    if (legal) token.classList.add("legal");
+    token.disabled = !legal || state.finished;
+    token.addEventListener("click",()=>moveToken(ti));
+    return token;
+  }
+
+  function renderTokens() {
+    allCells.forEach(cell=>{
+      cell.querySelectorAll(".token-stack,.token").forEach(el=>el.remove());
+    });
+
+    // Tokens waiting in their home bases.
+    players.forEach((p,pi)=>{
+      state.tokens[pi].forEach((progress,ti)=>{
+        if (progress !== -1) return;
+        const [r,c] = baseSlots[pi][ti];
+        const cell = cellAt.get(key(r,c));
+        if (cell) cell.appendChild(makeToken(pi,ti));
+      });
+    });
+
+    // Tokens on the shared track, home lanes and central home.
+    const groups = new Map();
+    players.forEach((p,pi)=>{
+      if (!activeColors().includes(pi)) return;
+      state.tokens[pi].forEach((progress,ti)=>{
+        if (progress < 0) return;
+        const point = progressCoord(pi,progress);
+        const k = key(point[0],point[1]);
+        if (!groups.has(k)) groups.set(k,[]);
+        groups.get(k).push({pi,ti});
+      });
+    });
+
+    groups.forEach((tokens,k)=>{
+      const cell = cellAt.get(k);
+      if (!cell) return;
+
+      const stack = document.createElement("div");
+      stack.className = "token-stack";
+      tokens.forEach(({pi,ti})=>stack.appendChild(makeToken(pi,ti)));
+      cell.appendChild(stack);
+    });
+  }
+
+  function playerDescription(colorIndex) {
+    if (mode() === "teams") {
+      return ownerOf(colorIndex) === 0
+        ? "Player 1 · " + players[colorIndex].name
+        : "Player 2 · " + players[colorIndex].name;
+    }
+    if (mode() === "diagonal") {
+      return "Player " + (colorIndex === 0 ? "1" : "2") +
+        " · " + players[colorIndex].name;
+    }
+    return players[colorIndex].name;
+  }
+
+  function renderScores() {
+    scores.innerHTML = "";
+
+    players.forEach((p,pi)=>{
+      const active = activeColors().includes(pi);
+      const home = state.tokens[pi].filter(v=>v===57).length;
+      const activeTokens = state.tokens[pi].filter(v=>v>=0&&v<57).length;
+
+      const row = document.createElement("div");
+      row.className = "score" + (!active ? " inactive" : "");
+
+      const name = document.createElement("span");
+      name.className = "score-name " + p.color;
+      name.textContent = p.name + (mode()==="teams"
+        ? (ownerOf(pi)===0 ? " · P1" : " · P2") : "");
+
+      const detail = document.createElement("span");
+      detail.textContent = active ? home+"/4 home · "+activeTokens+" active" : "Not playing";
+
+      row.append(name,detail);
+      scores.appendChild(row);
+    });
+  }
+
+  function render() {
+    renderTokens();
+
+    playerName.textContent = state.winner === null
+      ? playerDescription(state.current)
+      : (mode()==="teams"
+        ? (ownerOf(state.winner)===0 ? "Player 1 wins!" : "Player 2 wins!")
+        : players[state.winner].name + " wins!");
+
+    playerName.className = "player-name " + players[state.current].color;
+    turnLabel.textContent = mode()==="four" ? "CURRENT PLAYER" : "CURRENT TURN";
+    status.textContent = state.message;
+    rollValue.textContent = state.roll === null ? "—" : String(state.roll);
+    die.textContent = state.roll === null ? "⚄" : face[state.roll];
+
+    rollBtn.disabled = state.finished || state.roll !== null;
+    die.disabled = state.finished || state.roll !== null;
+    undoBtn.disabled = !undoState;
+
+    renderScores();
+  }
+
+  function advanceTurn() {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    state.current = nextColor(state.current);
+    state.roll = null;
+    state.legal = [];
+    state.consecutiveSixes = 0;
+    setMessage(playerDescription(state.current) + "'s turn. Roll the dice.");
+    render();
+  }
+
+  function rollDice() {
+    if (state.finished || state.roll !== null) return;
+
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+
+    remember();
+    const value = Math.floor(Math.random()*6)+1;
+
+    if (value === 6) {
+      state.consecutiveSixes++;
+      if (state.consecutiveSixes === 3) {
+        state.roll = null;
+        state.legal = [];
+        state.consecutiveSixes = 0;
+        setMessage("Three sixes! Turn forfeited.");
+        state.current = nextColor(state.current);
+        render();
+        return;
+      }
+    } else {
+      state.consecutiveSixes = 0;
+    }
+
+    state.roll = value;
+    state.legal = legalMoves(state.current,value);
+
+    if (state.legal.length === 0) {
+      const name = playerDescription(state.current);
+      state.roll = null;
+      state.legal = [];
+      setMessage(name + " rolled " + value + ". No legal move; turn passes.");
+      render();
+
+      timer = setTimeout(()=>{
+        timer = null;
+        if (!state.finished && state.roll === null) advanceTurn();
+      },850);
+      return;
+    }
+
+    setMessage(playerDescription(state.current) + " rolled " + value +
+      ". Select a highlighted token.");
+    render();
+  }
+
+  function moveToken(ti) {
+    if (state.finished || state.roll === null ||
+        !state.legal.includes(ti)) return;
+
+    remember();
+
+    const pi = state.current;
+    const roll = state.roll;
+    const oldProgress = state.tokens[pi][ti];
+    const newProgress = oldProgress === -1 ? 0 : oldProgress + roll;
+
+    state.tokens[pi][ti] = newProgress;
+
+    const victims = captureOpponents(pi,newProgress);
+    const reachedHome = newProgress === 57;
+
+    let winner = false;
+    if (mode() === "teams") {
+      const team = ownerOf(pi);
+      const teamColors = players.map((_,i)=>i).filter(i=>ownerOf(i)===team);
+      winner = teamColors.every(color =>
+        state.tokens[color].every(v=>v===57)
+      );
+    } else {
+      winner = state.tokens[pi].every(v=>v===57);
+    }
+
+    state.roll = null;
+    state.legal = [];
+
+    if (winner) {
+      state.finished = true;
+      state.winner = pi;
+
+      const winningName = mode()==="teams"
+        ? (ownerOf(pi)===0 ? "Player 1 (Red + Yellow)" : "Player 2 (Green + Blue)")
+        : mode()==="diagonal"
+          ? players[pi].name
+          : players[pi].name;
+
+      setMessage(winningName + " wins! All required tokens are home.");
+      render();
+      return;
+    }
+
+    let message = playerDescription(pi) + " moved token " + (ti+1) + ".";
+    if (victims.length) {
+      message += " Captured " + victims.length + " opponent token" +
+        (victims.length===1 ? "!" : "s!");
+    }
+    if (reachedHome) message += " Token reached home!";
+
+    const bonus = roll===6 || victims.length>0 || reachedHome;
+
+    if (bonus) {
+      setMessage(message + " Roll again.");
+      render();
+    } else {
+      setMessage(message + " Next: " + playerDescription(nextColor(pi)) + ".");
+      render();
+
+      timer = setTimeout(()=>{
+        timer = null;
+        if (!state.finished && state.current===pi && state.roll===null) {
+          advanceTurn();
+        }
+      },650);
+    }
+  }
+
+  function newGame() {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    state = freshState();
+    undoState = null;
+
+    if (mode()==="diagonal") {
+      state.current = 0;
+      state.message = "Player 1 is Red. Player 2 is Yellow.";
+    } else if (mode()==="teams") {
+      state.current = 0;
+      state.message = "Player 1: Red + Yellow. Player 2: Green + Blue.";
+    } else {
+      state.current = 0;
+      state.message = "Red starts. Roll the dice!";
+    }
+
+    render();
+  }
+
+  rollBtn.addEventListener("click",rollDice);
+  die.addEventListener("click",rollDice);
+
+  newBtn.addEventListener("click",()=>{
+    if (confirm("Start a new game? Current progress will be lost.")) newGame();
+  });
+
+  undoBtn.addEventListener("click",()=>{
+    if (!undoState) return;
+
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+
+    state = undoState;
+    undoState = null;
+    render();
+  });
+
+  gameMode.addEventListener("change",newGame);
+
+  buildBoard();
+  newGame();
+})();
+</script>
+</body>
+</html>
+

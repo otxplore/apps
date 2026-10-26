@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101820">
+<meta name="description" content="Play Connect Four with a friend in this free OTXS browser game.">
+<title>Connect Four | OTXS Games</title>
+<style>
+:root {
+  --bg:#101820;
+  --panel:#172631;
+  --panel2:#203440;
+  --yellow:#ffd166;
+  --orange:#ff7a35;
+  --white:#f6f5f0;
+  --muted:#b8c3c8;
+  --border:rgba(255,255,255,.12);
+  --red:#ff6b61;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--white);
+  background:
+    radial-gradient(ellipse at 10% 0%,#ffd16612,transparent 35%),
+    radial-gradient(ellipse at 90% 100%,#ff7a3510,transparent 35%),
+    var(--bg);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+a{color:var(--yellow);text-decoration:none}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+header{border-bottom:1px solid var(--border)}
+nav{
+  width:min(1050px,calc(100% - 32px));min-height:68px;
+  margin:auto;display:flex;align-items:center;
+  justify-content:space-between;gap:12px
+}
+.brand{display:flex;align-items:center;gap:10px;color:var(--white);font-weight:900;letter-spacing:.04em}
+.brand-icon{
+  display:grid;place-items:center;width:40px;height:40px;
+  border-radius:12px;background:var(--yellow);color:var(--bg);font-size:22px
+}
+.brand small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
+main{width:min(1050px,calc(100% - 32px));margin:auto}
+.hero{text-align:center;padding:32px 0 24px}
+.tag{
+  display:inline-block;padding:6px 12px;border:1px solid #ffd16655;
+  border-radius:99px;color:var(--yellow);font-size:12px;font-weight:850;letter-spacing:.1em
+}
+h1{font-size:clamp(32px,6vw,54px);letter-spacing:-.045em;line-height:1.1;margin:14px 0 8px}
+h1 span{color:var(--yellow)}
+.hero p{margin:0;color:var(--muted)}
+.layout{
+  display:grid;grid-template-columns:minmax(0,1.2fr) minmax(270px,.8fr);
+  gap:20px;align-items:start;max-width:960px;margin:auto
+}
+.card{
+  padding:clamp(14px,3vw,23px);border:1px solid var(--border);
+  border-radius:20px;background:rgba(23,38,49,.96);
+  box-shadow:0 18px 50px #0002
+}
+.status{
+  padding:12px;border:1px solid var(--border);border-radius:12px;
+  background:#ffffff06;text-align:center;font-weight:800;margin-bottom:15px
+}
+.status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--yellow);margin-right:8px}
+.players{display:flex;gap:9px;margin-bottom:15px}
+.player{
+  flex:1;display:flex;align-items:center;gap:9px;min-width:0;
+  padding:10px;border:1px solid var(--border);border-radius:12px
+}
+.player.active{border-color:var(--yellow);background:#ffd1660c}
+.disc{
+  width:30px;height:30px;flex:0 0 30px;border-radius:50%;
+  box-shadow:inset 0 3px 5px #0003,inset 0 -2px 3px #ffffff20
+}
+.disc.red{background:var(--red)}
+.disc.yellow{background:var(--yellow)}
+.player-name{font-size:13px;font-weight:850}
+.player-score{font-size:12px;color:var(--muted)}
+.score{margin-left:auto;font-size:22px;font-weight:900}
+.board-wrap{width:100%;max-width:570px;margin:auto}
+.column-buttons{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:7px
+}
+.column-btn{
+  height:35px;border:1px solid transparent;border-radius:8px;
+  background:#ffffff08;color:var(--yellow);font-weight:900;cursor:pointer
+}
+.column-btn:hover:not(:disabled){background:#ffd16620;border-color:#ffd16655}
+.column-btn:disabled{opacity:.22;cursor:default}
+.board{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(4px,1.2vw,9px);
+  padding:clamp(8px,2vw,14px);border-radius:18px;
+  background:linear-gradient(145deg,#ffbf52,#ff8c32);
+  box-shadow:inset 0 2px 5px #ffffff50,0 12px 26px #0003;
+  border:1px solid #ffc36a
+}
+.cell{
+  display:grid;place-items:center;aspect-ratio:1;min-width:0;
+  padding:0;border:0;border-radius:50%;background:#101820;
+  box-shadow:inset 0 3px 6px #0008;cursor:pointer
+}
+.cell:disabled{cursor:default}
+.cell .piece{
+  display:block;width:100%;height:100%;border-radius:50%;
+  transform:scale(.94);transition:transform .14s ease;
+  box-shadow:inset 0 3px 5px #ffffff26,inset 0 -4px 5px #0003
+}
+.piece.red{background:var(--red)}
+.piece.yellow{background:var(--yellow)}
+.cell .piece.win{
+  outline:3px solid white;outline-offset:-4px;
+  box-shadow:0 0 0 3px #101820,inset 0 3px 5px #ffffff55
+}
+.board-note{text-align:center;color:var(--muted);font-size:12px;margin-top:11px}
+.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:18px}
+.btn{
+  min-height:44px;padding:10px 15px;border:1px solid transparent;
+  border-radius:11px;font-weight:850;cursor:pointer
+}
+.primary{background:var(--yellow);color:var(--bg)}
+.secondary{background:transparent;border-color:var(--border);color:var(--white)}
+.btn:hover{filter:brightness(1.07)}
+.side h2{font-size:21px;margin:0 0 8px}
+.muted{font-size:13px;line-height:1.65;color:var(--muted)}
+.section-label{
+  margin:20px 0 9px;font-size:11px;font-weight:850;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted)
+}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.stat{padding:13px;border:1px solid var(--border);border-radius:12px;text-align:center}
+.stat strong{display:block;font-size:23px}
+.stat span{font-size:12px;color:var(--muted)}
+.rules{margin-top:19px;padding-top:16px;border-top:1px solid var(--border)}
+.rules h3{margin:0 0 8px;font-size:15px}
+.rules ol{margin:0;padding-left:19px;color:var(--muted);font-size:13px;line-height:1.8}
+.tip{
+  margin-top:16px;padding:12px;border-left:3px solid var(--orange);
+  border-radius:0 10px 10px 0;background:#ff7a350c;
+  color:var(--muted);font-size:13px;line-height:1.6
+}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+footer strong{color:var(--white)}
+@media(max-width:760px){.layout{grid-template-columns:1fr;max-width:540px}.side{order:2}.hero{padding-top:25px}}
+@media(max-width:390px){
+  main,nav{width:calc(100% - 20px)}
+  .card{padding:11px}
+  .board{gap:4px;padding:7px;border-radius:12px}
+  .column-buttons{gap:3px}
+  .column-btn{height:32px}
+  .player{padding:8px;gap:6px}
+  .disc{width:24px;height:24px;flex-basis:24px}
+  .player-name{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+<nav>
+  <a class="brand" href="https://apps.otxs.de/">
+    <span class="brand-icon">O</span>
+    <span>OTXS <span style="color:var(--yellow)">GAMES</span>
+      <small>Discover. Play. Explore.</small>
+    </span>
+  </a>
+  <a href="https://apps.otxs.de/">← All Apps</a>
+</nav>
+</header>
+
+<main>
+<section class="hero">
+  <span class="tag">✦ OTXS Mini Games</span>
+  <h1>Connect <span>Four</span></h1>
+  <p>Drop your discs. Make a line. Beat your opponent.</p>
+</section>
+
+<section class="layout">
+  <div class="card">
+    <div class="status" id="status" role="status" aria-live="polite">
+      <span class="status-dot"></span>Player 1's turn — choose a column.
+    </div>
+
+    <div class="players">
+      <div class="player active" id="player1">
+        <span class="disc red"></span>
+        <div>
+          <div class="player-name">Player 1</div>
+          <div class="player-score">Red discs</div>
+        </div>
+        <div class="score" id="score1">0</div>
+      </div>
+      <div class="player" id="player2">
+        <span class="disc yellow"></span>
+        <div>
+          <div class="player-name">Player 2</div>
+          <div class="player-score">Yellow discs</div>
+        </div>
+        <div class="score" id="score2">0</div>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <div class="column-buttons" id="columnButtons" aria-label="Choose a column"></div>
+      <div class="board" id="board" role="group" aria-label="Connect Four board"></div>
+    </div>
+
+    <div class="board-note">Tap a column or its arrow. Discs fall to the lowest empty slot.</div>
+
+    <div class="actions">
+      <button class="btn primary" id="newGame">↻ New game</button>
+      <button class="btn secondary" id="undo">↶ Undo move</button>
+      <button class="btn secondary" id="resetScores">Reset scores</button>
+    </div>
+  </div>
+
+  <aside class="card side">
+    <h2>Ready, set, connect!</h2>
+    <p class="muted">A quick strategy game for two friends sharing one phone, tablet or computer. Think ahead, create threats and block your opponent.</p>
+
+    <div class="section-label">Match statistics</div>
+    <div class="stats">
+      <div class="stat"><strong id="movesCount">0</strong><span>Moves played</span></div>
+      <div class="stat"><strong id="gamesCount">0</strong><span>Games finished</span></div>
+      <div class="stat"><strong id="redWins">0</strong><span>Red wins</span></div>
+      <div class="stat"><strong id="yellowWins">0</strong><span>Yellow wins</span></div>
+    </div>
+
+    <div class="rules">
+      <h3>How to play</h3>
+      <ol>
+        <li>Player 1 uses red; Player 2 uses yellow.</li>
+        <li>Take turns selecting one of the seven columns.</li>
+        <li>Your disc drops into the lowest available space.</li>
+        <li>Connect four discs horizontally, vertically or diagonally to win.</li>
+        <li>If all 42 spaces fill with no winner, the match is a draw.</li>
+      </ol>
+    </div>
+
+    <div class="tip"><strong style="color:var(--orange)">Strategy tip:</strong> Keep an eye on your opponent's three-disc lines. Sometimes the best move is to block rather than attack.</div>
+    <p class="muted">Your game runs locally in your browser. No account, server or external library is needed.</p>
+  </aside>
+</section>
+
+<footer>
+  <strong>OTXS — Discover and Explore.</strong><br>
+  Free to play. No account required.
+  <p><a href="https://apps.otxs.de/">Explore more apps</a></p>
+</footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const ROWS = 6;
+  const COLS = 7;
+  const CONNECT = 4;
+
+  const boardEl = document.getElementById("board");
+  const columnsEl = document.getElementById("columnButtons");
+  const statusEl = document.getElementById("status");
+
+  let board;
+  let currentPlayer;
+  let gameOver;
+  let winner;
+  let moveHistory;
+  let winningCells;
+  let scores = [0, 0];
+  let gamesFinished = 0;
+
+  function emptyBoard() {
+    return Array.from({length: ROWS}, () => Array(COLS).fill(0));
+  }
+
+  function startGame() {
+    board = emptyBoard();
+    currentPlayer = 1;
+    gameOver = false;
+    winner = 0;
+    moveHistory = [];
+    winningCells = [];
+    render();
+    setStatus("Player 1's turn — choose a column.");
+  }
+
+  function setStatus(message) {
+    statusEl.replaceChildren();
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
+    statusEl.append(dot, document.createTextNode(message));
+  }
+
+  function getDropRow(col) {
+    for (let row = ROWS - 1; row >= 0; row--) {
+      if (board[row][col] === 0) return row;
+    }
+    return -1;
+  }
+
+  function findWinningLine(row, col, player) {
+    const directions = [
+      [0, 1],   // horizontal
+      [1, 0],   // vertical
+      [1, 1],   // diagonal
+      [1, -1]   // diagonal
+    ];
+
+    for (const [dr, dc] of directions) {
+      const line = [[row, col]];
+
+      for (const sign of [-1, 1]) {
+        let r = row + dr * sign;
+        let c = col + dc * sign;
+
+        while (
+          r >= 0 && r < ROWS &&
+          c >= 0 && c < COLS &&
+          board[r][c] === player
+        ) {
+          line.push([r, c]);
+          r += dr * sign;
+          c += dc * sign;
+        }
+      }
+
+      if (line.length >= CONNECT) return line;
+    }
+
+    return [];
+  }
+
+  function dropDisc(col) {
+    if (gameOver) return;
+
+    const row = getDropRow(col);
+    if (row < 0) {
+      setStatus(`Column ${col + 1} is full. Try another column.`);
+      return;
+    }
+
+    board[row][col] = currentPlayer;
+    moveHistory.push({
+      row,
+      col,
+      player: currentPlayer
+    });
+
+    const line = findWinningLine(row, col, currentPlayer);
+
+    if (line.length) {
+      winningCells = line;
+      winner = currentPlayer;
+      gameOver = true;
+      gamesFinished++;
+      scores[currentPlayer - 1]++;
+      render();
+
+      setStatus(
+        `🎉 Player ${currentPlayer} wins! Four in a row!`
+      );
+      return;
+    }
+
+    if (board.every(rowCells => rowCells.every(cell => cell !== 0))) {
+      gameOver = true;
+      winner = 0;
+      gamesFinished++;
+      render();
+      setStatus("It's a draw! The board is full.");
+      return;
+    }
+
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    render();
+    setStatus(`Player ${currentPlayer}'s turn — choose a column.`);
+  }
+
+  function render() {
+    boardEl.innerHTML = "";
+    columnsEl.innerHTML = "";
+
+    for (let col = 0; col < COLS; col++) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "column-btn";
+      button.textContent = "↓";
+      button.title = `Drop disc in column ${col + 1}`;
+      button.setAttribute("aria-label", `Drop disc in column ${col + 1}`);
+      button.disabled = gameOver || getDropRow(col) < 0;
+      button.addEventListener("click", () => dropDisc(col));
+      columnsEl.appendChild(button);
+    }
+
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const value = board[row][col];
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cell";
+        cell.setAttribute("aria-label",
+          `Row ${row + 1}, column ${col + 1}, ` +
+          (value === 0 ? "empty" : value === 1 ? "red disc" : "yellow disc")
+        );
+        cell.disabled = gameOver;
+
+        if (value !== 0) {
+          const piece = document.createElement("span");
+          piece.className = "piece " + (value === 1 ? "red" : "yellow");
+
+          if (winningCells.some(([r, c]) => r === row && c === col)) {
+            piece.classList.add("win");
+          }
+
+          cell.appendChild(piece);
+        }
+
+        cell.addEventListener("click", () => dropDisc(col));
+        boardEl.appendChild(cell);
+      }
+    }
+
+    document.getElementById("player1").classList.toggle(
+      "active", !gameOver && currentPlayer === 1
+    );
+    document.getElementById("player2").classList.toggle(
+      "active", !gameOver && currentPlayer === 2
+    );
+
+    document.getElementById("score1").textContent = scores[0];
+    document.getElementById("score2").textContent = scores[1];
+    document.getElementById("movesCount").textContent = moveHistory.length;
+    document.getElementById("gamesCount").textContent = gamesFinished;
+    document.getElementById("redWins").textContent = scores[0];
+    document.getElementById("yellowWins").textContent = scores[1];
+  }
+
+  function undoMove() {
+    if (moveHistory.length === 0) {
+      setStatus("There are no moves to undo.");
+      return;
+    }
+
+    // If the game has ended, undo the winning move and reverse its score.
+    if (gameOver && winner !== 0) {
+      scores[winner - 1]--;
+      gamesFinished = Math.max(0, gamesFinished - 1);
+    } else if (gameOver && winner === 0) {
+      gamesFinished = Math.max(0, gamesFinished - 1);
+    }
+
+    const last = moveHistory.pop();
+    board[last.row][last.col] = 0;
+    currentPlayer = last.player;
+    gameOver = false;
+    winner = 0;
+    winningCells = [];
+
+    render();
+    setStatus(`Player ${currentPlayer}'s turn — choose a column.`);
+  }
+
+  document.getElementById("newGame").addEventListener("click", startGame);
+  document.getElementById("undo").addEventListener("click", undoMove);
+
+  document.getElementById("resetScores").addEventListener("click", () => {
+    scores = [0, 0];
+    gamesFinished = 0;
+    render();
+    setStatus("Scores reset. Keep playing!");
+  });
+
+  startGame();
+})();
+</script>
+</body>
+</html>
+

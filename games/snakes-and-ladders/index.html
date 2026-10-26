@@ -1,0 +1,977 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101820">
+<meta name="description" content="Play Snakes and Ladders with a friend. A free two-player OTXS browser game.">
+<title>Snakes &amp; Ladders | OTXS Games</title>
+
+<style>
+:root {
+  --bg: #101820;
+  --panel: #172631;
+  --panel2: #203440;
+  --yellow: #ffd166;
+  --orange: #ff7a35;
+  --white: #f6f5f0;
+  --muted: #b8c3c8;
+  --border: rgba(255,255,255,.11);
+  --green: #8dd9a7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--white);
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(255,209,102,.09), transparent 35%),
+    radial-gradient(ellipse at 90% 100%, rgba(255,122,53,.08), transparent 35%),
+    var(--bg);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a { color: var(--yellow); text-decoration: none; }
+a:hover { color: var(--orange); }
+button { font: inherit; -webkit-tap-highlight-color: transparent; }
+
+button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 3px;
+}
+
+.site-header { border-bottom: 1px solid var(--border); }
+
+.nav {
+  width: min(1100px, calc(100% - 32px));
+  min-height: 70px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--white);
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--yellow);
+  color: var(--bg);
+  font-size: 1.2rem;
+}
+
+.brand small {
+  display: block;
+  color: var(--muted);
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.nav-link { font-size: .9rem; font-weight: 700; }
+main { width: min(1100px, calc(100% - 32px)); margin: auto; }
+
+.hero { padding: 35px 0 24px; text-align: center; }
+
+.eyebrow {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid rgba(255,209,102,.3);
+  border-radius: 999px;
+  color: var(--yellow);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 15px 0 8px;
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  line-height: 1.12;
+  letter-spacing: -.045em;
+}
+
+h1 span { color: var(--yellow); }
+
+.hero p {
+  max-width: 540px;
+  margin: 10px auto 0;
+  color: var(--muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(270px, .75fr);
+  gap: 20px;
+  align-items: start;
+  max-width: 1000px;
+  margin: 10px auto 0;
+}
+
+.card {
+  padding: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: rgba(23,38,49,.94);
+  box-shadow: 0 18px 50px rgba(0,0,0,.15);
+}
+
+.game-status {
+  margin-bottom: 15px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+  text-align: center;
+  font-weight: 800;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--yellow);
+}
+
+.board {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  aspect-ratio: 1;
+  gap: 2px;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255,209,102,.24);
+  border-radius: 12px;
+  background: #0b1319;
+}
+
+.square {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 0;
+  padding: 3px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #233945;
+  color: #dce5e8;
+  font-size: clamp(.48rem, 1.5vw, .82rem);
+  line-height: 1;
+}
+
+.square:nth-child(odd) { background: #1a303b; }
+
+.square.start {
+  background: rgba(141,217,167,.28);
+  color: white;
+}
+
+.square.finish {
+  background: rgba(255,209,102,.34);
+  color: white;
+}
+
+.square.snake-start { background: rgba(255,122,53,.18); }
+.square.ladder-start { background: rgba(141,217,167,.15); }
+
+.square-number { position: relative; z-index: 2; }
+
+.piece-stack {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 6;
+  display: flex;
+  gap: 1px;
+  align-items: center;
+}
+
+.piece {
+  display: grid;
+  place-items: center;
+  width: clamp(11px, 2.5vw, 23px);
+  height: clamp(11px, 2.5vw, 23px);
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 50%;
+  color: #101820;
+  font-size: clamp(.45rem, 1.2vw, .7rem);
+  font-weight: 950;
+  box-shadow: 0 1px 3px #0008;
+}
+
+.piece.p1 { background: var(--yellow); }
+.piece.p2 { background: var(--orange); }
+
+.board-overlay {
+  position: absolute;
+  inset: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.board-overlay .ladder-shadow {
+  stroke: #101820;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+}
+
+.board-overlay .ladder-rail {
+  stroke: #ffd166;
+  stroke-width: 1.15;
+  stroke-linecap: round;
+}
+
+.board-overlay .ladder-rung {
+  stroke: #fff0bc;
+  stroke-width: .8;
+  stroke-linecap: round;
+}
+
+.board-overlay .snake-outline {
+  fill: none;
+  stroke: #101820;
+  stroke-width: 3.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.board-overlay .snake-line {
+  fill: none;
+  stroke: #ff7a35;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.board-overlay .snake-stripe {
+  fill: none;
+  stroke: #ffd8ad;
+  stroke-width: .45;
+  stroke-dasharray: 1.3 2.2;
+  stroke-linecap: round;
+}
+
+.board-overlay .endpoint {
+  stroke: #101820;
+  stroke-width: .65;
+}
+
+.board-overlay .ladder-end { fill: #ffd166; }
+.board-overlay .snake-end { fill: #ff7a35; }
+
+.board-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 16px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+.dice-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 20px 0 15px;
+}
+
+.die {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: 2px solid rgba(255,209,102,.55);
+  border-radius: 16px;
+  background: #f6f5f0;
+  color: #101820;
+  font-size: 2.6rem;
+  font-weight: 900;
+  box-shadow: 0 7px 0 rgba(0,0,0,.18);
+}
+
+.dice-hint { color: var(--muted); font-size: .82rem; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+
+.btn {
+  min-height: 45px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform .15s ease, opacity .15s ease;
+}
+
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:disabled { cursor: wait; opacity: .6; }
+.btn-primary { background: var(--yellow); color: var(--bg); }
+.btn-secondary { background: transparent; border-color: var(--border); color: var(--white); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--orange); }
+
+.side-card h2 { margin: 0 0 8px; font-size: 1.25rem; }
+.intro { margin: 0 0 17px; color: var(--muted); font-size: .9rem; }
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 9px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: rgba(255,255,255,.025);
+}
+
+.player.active {
+  border-color: rgba(255,209,102,.65);
+  background: rgba(255,209,102,.06);
+}
+
+.player-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  background: var(--panel2);
+  font-size: 1.5rem;
+}
+
+.player-icon.p1 { color: var(--yellow); }
+.player-icon.p2 { color: var(--orange); }
+.player-info { flex: 1; }
+.player-name { font-weight: 850; }
+.player-position { color: var(--muted); font-size: .8rem; }
+.position-number { font-size: 1.5rem; font-weight: 900; }
+
+.section-label {
+  margin: 20px 0 8px;
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+.stat {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stat strong { display: block; font-size: 1.25rem; }
+.stat span { color: var(--muted); font-size: .76rem; }
+
+.rules {
+  margin-top: 19px;
+  padding-top: 17px;
+  border-top: 1px solid var(--border);
+}
+
+.rules h3 { margin: 0 0 8px; font-size: 1rem; }
+.rules ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: .86rem; }
+.rules li + li { margin-top: 6px; }
+
+.tip {
+  margin-top: 15px;
+  padding: 12px;
+  border-left: 3px solid var(--orange);
+  border-radius: 0 10px 10px 0;
+  background: rgba(255,122,53,.07);
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.footer {
+  padding: 30px 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: .83rem;
+}
+
+.footer strong { color: var(--white); }
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; max-width: 520px; }
+  .side-card { order: 2; }
+  .hero { padding-top: 28px; }
+}
+
+@media (max-width: 390px) {
+  main, .nav { width: calc(100% - 20px); }
+  .nav { min-height: 62px; }
+  .board { gap: 1px; padding: 3px; }
+  .square { padding: 2px; }
+  .card { padding: 12px; }
+  .die { width: 58px; height: 58px; }
+  .btn { padding: 10px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+</style>
+</head>
+
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Main navigation">
+    <a class="brand" href="https://apps.otxs.de/" aria-label="OTXS Apps home">
+      <span class="brand-mark">O</span>
+      <span>OTXS <span style="color:var(--yellow)">GAMES</span>
+        <small>Discover. Play. Explore.</small>
+      </span>
+    </a>
+    <a class="nav-link" href="https://apps.otxs.de/">← All Apps</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">✦ OTXS Mini Games</div>
+    <h1>Snakes <span>&amp;</span> Ladders</h1>
+    <p>Roll the dice, climb the ladders and avoid the snakes. First to the finish wins!</p>
+  </section>
+
+  <section class="layout">
+    <div class="card">
+      <div class="game-status" role="status" aria-live="polite">
+        <span class="status-dot"></span><span id="statusText">Player 1's turn — roll the dice!</span>
+      </div>
+
+      <div class="board" id="board" role="img" aria-label="Snakes and Ladders numbered board"></div>
+
+      <div class="board-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Player 1</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--orange)"></span>Player 2</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--orange)"></span>Snake</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Ladder</span>
+      </div>
+
+      <div class="dice-area">
+        <div class="die" id="die" aria-label="Dice result">⚄</div>
+        <div>
+          <div style="font-weight:850">Roll the dice</div>
+          <div class="dice-hint">Move 1–6 squares</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="rollBtn" type="button">🎲 Roll dice</button>
+        <button class="btn btn-secondary" id="newGameBtn" type="button">↻ New game</button>
+      </div>
+    </div>
+
+    <aside class="card side-card">
+      <h2>Race to 100</h2>
+      <p class="intro">Take turns on one device. Watch your position and avoid those snakes!</p>
+
+      <div class="player active" id="player1Card">
+        <div class="player-icon p1">●</div>
+        <div class="player-info">
+          <div class="player-name">Player 1</div>
+          <div class="player-position">Yellow token</div>
+        </div>
+        <div class="position-number" id="pos1">0</div>
+      </div>
+
+      <div class="player" id="player2Card">
+        <div class="player-icon p2">●</div>
+        <div class="player-info">
+          <div class="player-name">Player 2</div>
+          <div class="player-position">Orange token</div>
+        </div>
+        <div class="position-number" id="pos2">0</div>
+      </div>
+
+      <div class="section-label">Game stats</div>
+      <div class="stats">
+        <div class="stat"><strong id="rollCount">0</strong><span>Dice rolls</span></div>
+        <div class="stat"><strong id="snakesCount">0</strong><span>Snake slides</span></div>
+        <div class="stat"><strong id="laddersCount">0</strong><span>Ladder climbs</span></div>
+        <div class="stat"><strong id="winnerCount">—</strong><span>Winner</span></div>
+      </div>
+
+      <div class="rules">
+        <h3>How to play</h3>
+        <ol>
+          <li>Both players start at square 0.</li>
+          <li>Take turns rolling the dice.</li>
+          <li>Land on a ladder to climb; land on a snake to slide down.</li>
+          <li>You must roll the exact number needed to reach 100.</li>
+          <li>The first player to reach 100 wins!</li>
+        </ol>
+      </div>
+
+      <div class="tip"><strong style="color:var(--orange)">OTXS tip:</strong> Play together while travelling, waiting or relaxing with friends.</div>
+    </aside>
+  </section>
+
+  <footer class="footer">
+    <strong>OTXS — Discover and Explore.</strong><br>
+    Free to play. No account, download or backend required.
+    <div class="footer-links">
+      <a href="https://apps.otxs.de/">Explore more apps</a>
+      <a href="https://otxs.de/policy/">Policies &amp; Privacy</a>
+    </div>
+  </footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const SNAKES = {
+    17: 7,
+    54: 34,
+    62: 19,
+    64: 60,
+    87: 24,
+    93: 73,
+    95: 75,
+    99: 78
+  };
+
+  const LADDERS = {
+    4: 14,
+    9: 31,
+    20: 38,
+    28: 84,
+    40: 59,
+    51: 67,
+    63: 81,
+    71: 91
+  };
+
+  const boardElement = document.getElementById("board");
+  const statusElement = document.getElementById("statusText");
+  const dieElement = document.getElementById("die");
+  const rollButton = document.getElementById("rollBtn");
+  const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+  let positions = [0, 0];
+  let currentPlayer = 0;
+  let gameOver = false;
+  let rolls = 0;
+  let snakeSlides = 0;
+  let ladderClimbs = 0;
+  let winner = null;
+  let isRolling = false;
+  let rollTimer = null;
+
+  function squareOrder() {
+    const order = [];
+
+    for (let row = 9; row >= 0; row--) {
+      const low = row * 10 + 1;
+      const high = row * 10 + 10;
+
+      if (row % 2 === 1) {
+        for (let n = low; n <= high; n++) order.push(n);
+      } else {
+        for (let n = high; n >= low; n--) order.push(n);
+      }
+    }
+
+    return order;
+  }
+
+  const boardOrder = squareOrder();
+
+  function centerOf(number) {
+    const rowFromBottom = Math.floor((number - 1) / 10);
+    const offset = (number - 1) % 10;
+    const col = rowFromBottom % 2 === 0 ? offset : 9 - offset;
+    const row = 9 - rowFromBottom;
+
+    return {
+      x: col * 10 + 5,
+      y: row * 10 + 5
+    };
+  }
+
+  function addSvg(svg, tag, attrs) {
+    const ns = "http://www.w3.org/2000/svg";
+    const element = document.createElementNS(ns, tag);
+
+    Object.entries(attrs).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+
+    svg.appendChild(element);
+    return element;
+  }
+
+  function drawBoardOverlay() {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+
+    svg.setAttribute("class", "board-overlay");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("aria-hidden", "true");
+
+    // Draw ladders as two rails with multiple rungs.
+    Object.entries(LADDERS).forEach(([from, to]) => {
+      const a = centerOf(Number(from));
+      const b = centerOf(Number(to));
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const length = Math.hypot(dx, dy);
+
+      if (!length) return;
+
+      const px = -dy / length;
+      const py = dx / length;
+      const halfWidth = 1.25;
+      const inset = 1.25;
+
+      const start = {
+        x: a.x + dx / length * inset,
+        y: a.y + dy / length * inset
+      };
+
+      const end = {
+        x: b.x - dx / length * inset,
+        y: b.y - dy / length * inset
+      };
+
+      // Dark outlines improve visibility against the squares.
+      [-halfWidth, halfWidth].forEach(offset => {
+        addSvg(svg, "line", {
+          x1: start.x + px * offset,
+          y1: start.y + py * offset,
+          x2: end.x + px * offset,
+          y2: end.y + py * offset,
+          class: "ladder-shadow"
+        });
+      });
+
+      [-halfWidth, halfWidth].forEach(offset => {
+        addSvg(svg, "line", {
+          x1: start.x + px * offset,
+          y1: start.y + py * offset,
+          x2: end.x + px * offset,
+          y2: end.y + py * offset,
+          class: "ladder-rail"
+        });
+      });
+
+      const usableLength = Math.hypot(
+        end.x - start.x,
+        end.y - start.y
+      );
+
+      const rungCount = Math.max(3, Math.floor(usableLength / 4.8));
+
+      for (let i = 0; i <= rungCount; i++) {
+        const t = i / rungCount;
+        const x = start.x + (end.x - start.x) * t;
+        const y = start.y + (end.y - start.y) * t;
+
+        addSvg(svg, "line", {
+          x1: x - px * halfWidth,
+          y1: y - py * halfWidth,
+          x2: x + px * halfWidth,
+          y2: y + py * halfWidth,
+          class: "ladder-rung"
+        });
+      }
+
+      addSvg(svg, "circle", {
+        cx: a.x, cy: a.y, r: 1.1, class: "endpoint ladder-end"
+      });
+
+      addSvg(svg, "circle", {
+        cx: b.x, cy: b.y, r: 1.1, class: "endpoint ladder-end"
+      });
+    });
+
+    // Draw snakes as curved paths between their heads and tails.
+    Object.entries(SNAKES).forEach(([from, to]) => {
+      const a = centerOf(Number(from));
+      const b = centerOf(Number(to));
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const length = Math.hypot(dx, dy);
+
+      if (!length) return;
+
+      const px = -dy / length;
+      const py = dx / length;
+      const wiggle = Math.min(5.5, length * .18);
+
+      const c1x = a.x + dx * .30 + px * wiggle;
+      const c1y = a.y + dy * .30 + py * wiggle;
+      const c2x = a.x + dx * .70 - px * wiggle;
+      const c2y = a.y + dy * .70 - py * wiggle;
+
+      const path = `M ${a.x} ${a.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${b.x} ${b.y}`;
+
+      addSvg(svg, "path", {
+        d: path,
+        class: "snake-outline"
+      });
+
+      addSvg(svg, "path", {
+        d: path,
+        class: "snake-line"
+      });
+
+      addSvg(svg, "path", {
+        d: path,
+        class: "snake-stripe"
+      });
+
+      addSvg(svg, "circle", {
+        cx: a.x, cy: a.y, r: 1.65, class: "endpoint snake-end"
+      });
+
+      addSvg(svg, "circle", {
+        cx: b.x, cy: b.y, r: 1.3, class: "endpoint snake-end"
+      });
+
+      // A small pointed head marker.
+      const head = addSvg(svg, "path", {
+        d: `M ${a.x - 1.4} ${a.y - 1.1}
+            L ${a.x + 1.8} ${a.y}
+            L ${a.x - 1.4} ${a.y + 1.1} Z`,
+        fill: "#ff7a35",
+        stroke: "#101820",
+        "stroke-width": ".5"
+      });
+      head.setAttribute("aria-hidden", "true");
+    });
+
+    boardElement.appendChild(svg);
+  }
+
+  function buildBoard() {
+    boardElement.innerHTML = "";
+
+    boardOrder.forEach(number => {
+      const square = document.createElement("div");
+      square.className = "square";
+      square.dataset.square = number;
+
+      if (number === 1) square.classList.add("start");
+      if (number === 100) square.classList.add("finish");
+      if (Object.hasOwn(SNAKES, number)) square.classList.add("snake-start");
+      if (Object.hasOwn(LADDERS, number)) square.classList.add("ladder-start");
+
+      const label = document.createElement("span");
+      label.className = "square-number";
+      label.textContent = number;
+      square.appendChild(label);
+
+      if (Object.hasOwn(SNAKES, number)) {
+        square.title = `Snake: ${number} down to ${SNAKES[number]}`;
+      } else if (Object.hasOwn(LADDERS, number)) {
+        square.title = `Ladder: ${number} up to ${LADDERS[number]}`;
+      }
+
+      const pieces = document.createElement("div");
+      pieces.className = "piece-stack";
+      pieces.dataset.pieces = number;
+      square.appendChild(pieces);
+
+      boardElement.appendChild(square);
+    });
+
+    drawBoardOverlay();
+  }
+
+  function setStatus(message) {
+    statusElement.textContent = message;
+  }
+
+  function renderPieces() {
+    boardElement.querySelectorAll("[data-pieces]").forEach(stack => {
+      stack.innerHTML = "";
+      const squareNumber = Number(stack.dataset.pieces);
+
+      positions.forEach((position, playerIndex) => {
+        if (position !== squareNumber) return;
+
+        const piece = document.createElement("span");
+        piece.className = `piece ${playerIndex === 0 ? "p1" : "p2"}`;
+        piece.textContent = playerIndex === 0 ? "1" : "2";
+        piece.title = `Player ${playerIndex + 1}`;
+        stack.appendChild(piece);
+      });
+    });
+
+    document.getElementById("pos1").textContent = positions[0];
+    document.getElementById("pos2").textContent = positions[1];
+
+    document.getElementById("player1Card").classList.toggle(
+      "active", !gameOver && currentPlayer === 0
+    );
+
+    document.getElementById("player2Card").classList.toggle(
+      "active", !gameOver && currentPlayer === 1
+    );
+
+    document.getElementById("rollCount").textContent = rolls;
+    document.getElementById("snakesCount").textContent = snakeSlides;
+    document.getElementById("laddersCount").textContent = ladderClimbs;
+    document.getElementById("winnerCount").textContent =
+      winner === null ? "—" : `P${winner + 1}`;
+
+    rollButton.disabled = gameOver || isRolling;
+  }
+
+  function finishTurn() {
+    isRolling = false;
+
+    if (!gameOver) {
+      currentPlayer = currentPlayer === 0 ? 1 : 0;
+    }
+
+    renderPieces();
+  }
+
+  function completeRoll() {
+    const roll = Math.floor(Math.random() * 6) + 1;
+    dieElement.textContent = diceFaces[roll - 1];
+    rolls++;
+
+    const player = currentPlayer;
+    const attemptedPosition = positions[player] + roll;
+
+    if (attemptedPosition > 100) {
+      setStatus(
+        `Player ${player + 1} rolled ${roll}. An exact roll is needed for 100.`
+      );
+      finishTurn();
+      return;
+    }
+
+    positions[player] = attemptedPosition;
+    let message = `Player ${player + 1} rolled ${roll} and moved to ${attemptedPosition}.`;
+
+    if (positions[player] === 100) {
+      gameOver = true;
+      winner = player;
+      setStatus(`🎉 Player ${player + 1} wins! First to reach 100!`);
+      isRolling = false;
+      renderPieces();
+      return;
+    }
+
+    if (Object.hasOwn(LADDERS, positions[player])) {
+      const base = positions[player];
+      positions[player] = LADDERS[base];
+      ladderClimbs++;
+      message = `🪜 Player ${player + 1} climbed from ${base} to ${positions[player]}!`;
+    } else if (Object.hasOwn(SNAKES, positions[player])) {
+      const head = positions[player];
+      positions[player] = SNAKES[head];
+      snakeSlides++;
+      message = `🐍 Player ${player + 1} slid from ${head} down to ${positions[player]}.`;
+    }
+
+    setStatus(message);
+    finishTurn();
+  }
+
+  function rollDice() {
+    if (gameOver || isRolling) return;
+
+    isRolling = true;
+    rollButton.disabled = true;
+
+    let frames = 0;
+
+    rollTimer = setInterval(() => {
+      dieElement.textContent = diceFaces[
+        Math.floor(Math.random() * diceFaces.length)
+      ];
+
+      frames++;
+
+      if (frames >= 7) {
+        clearInterval(rollTimer);
+        rollTimer = null;
+        completeRoll();
+      }
+    }, 70);
+  }
+
+  function newGame() {
+    if (rollTimer !== null) {
+      clearInterval(rollTimer);
+      rollTimer = null;
+    }
+
+    positions = [0, 0];
+    currentPlayer = 0;
+    gameOver = false;
+    isRolling = false;
+    rolls = 0;
+    snakeSlides = 0;
+    ladderClimbs = 0;
+    winner = null;
+
+    dieElement.textContent = "⚄";
+    setStatus("Player 1's turn — roll the dice!");
+    renderPieces();
+  }
+
+  document.getElementById("rollBtn").addEventListener("click", rollDice);
+  document.getElementById("newGameBtn").addEventListener("click", newGame);
+
+  buildBoard();
+  renderPieces();
+})();
+</script>
+</body>
+</html>
+

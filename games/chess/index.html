@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101820">
+<title>Chess | OTXS Games</title>
+<style>
+:root {
+  --bg:#101820;--panel:#172631;--panel2:#203440;
+  --yellow:#ffd166;--orange:#ff7a35;--white:#f6f5f0;
+  --muted:#b8c3c8;--border:rgba(255,255,255,.12);
+  --light:#e8d8b5;--dark:#658577;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--white);
+  background:radial-gradient(ellipse at 10% 0%,#ffd16612,transparent 38%),var(--bg);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif
+}
+a{color:var(--yellow);text-decoration:none}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+header{border-bottom:1px solid var(--border)}
+nav{
+  width:min(1050px,calc(100% - 30px));min-height:68px;margin:auto;
+  display:flex;align-items:center;justify-content:space-between;gap:12px
+}
+.brand{display:flex;align-items:center;gap:10px;color:var(--white);font-weight:900;letter-spacing:.04em}
+.brand-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--yellow);color:var(--bg);font-size:22px}
+.brand small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
+main{width:min(1050px,calc(100% - 30px));margin:auto}
+.hero{text-align:center;padding:30px 0 22px}
+.tag{display:inline-block;padding:6px 12px;border:1px solid #ffd16655;border-radius:99px;color:var(--yellow);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+h1{font-size:clamp(32px,6vw,52px);letter-spacing:-.04em;line-height:1.1;margin:14px 0 8px}
+h1 span{color:var(--yellow)}
+.hero p{color:var(--muted);margin:0}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:20px;align-items:start;max-width:940px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:clamp(13px,3vw,22px);box-shadow:0 16px 45px #0002}
+.status{background:#ffffff08;border:1px solid var(--border);padding:12px;border-radius:12px;text-align:center;font-weight:750;margin-bottom:14px}
+.status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--yellow);margin-right:8px}
+.player-bar{display:flex;gap:8px;margin-bottom:13px}
+.player-pill{flex:1;text-align:center;border:1px solid var(--border);border-radius:10px;padding:10px 6px;color:var(--muted);font-size:13px}
+.player-pill.active{border-color:var(--yellow);background:#ffd16612;color:var(--white)}
+.player-pill strong{display:block;margin-bottom:3px}
+.board-wrap{width:100%;max-width:590px;margin:auto}
+.board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));aspect-ratio:1;border:5px solid #0b1319;border-radius:7px;overflow:hidden;box-shadow:0 10px 28px #0003}
+.square{position:relative;display:grid;place-items:center;aspect-ratio:1;min-width:0;border:0;padding:0;color:#101820}
+.square.light{background:var(--light)}
+.square.dark{background:var(--dark)}
+.square.selected{box-shadow:inset 0 0 0 4px var(--yellow);z-index:1}
+.square.last-move{background:#e5c45b!important}
+.square.in-check{background:#ed716b!important}
+.piece{position:relative;z-index:2;font-family:"DejaVu Sans",serif;font-size:clamp(24px,5.4vw,48px);line-height:1;user-select:none;filter:drop-shadow(0 1px 1px #0004)}
+.square.light .piece.white{color:#fffdf4;text-shadow:0 1px 2px #18252b,1px 0 #18252b,-1px 0 #18252b,0 -1px #18252b}
+.square.dark .piece.white{color:#fffdf4;text-shadow:0 1px 2px #18252b,1px 0 #18252b,-1px 0 #18252b,0 -1px #18252b}
+.piece.black{color:#172027;text-shadow:0 1px 1px #ffffff66}
+.coord{position:absolute;font-size:clamp(8px,1.6vw,11px);font-weight:800;opacity:.8;z-index:3}
+.coord.file{bottom:2px;right:3px}
+.coord.rank{top:2px;left:3px}
+.light .coord{color:#40564b}.dark .coord{color:#f3e4c2}
+.square .hint{position:absolute;width:23%;height:23%;border-radius:50%;background:#17202765;z-index:1}
+.square .hint.capture{width:85%;height:85%;border:4px solid #17202765;background:transparent}
+.square:disabled{cursor:default}
+.board-note{text-align:center;color:var(--muted);font-size:12px;margin-top:9px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.btn{border:1px solid transparent;border-radius:11px;padding:11px 14px;font-weight:800;min-height:43px}
+.primary{background:var(--yellow);color:var(--bg)}
+.secondary{background:transparent;color:var(--white);border-color:var(--border)}
+.btn:hover{filter:brightness(1.06)}
+.side h2{font-size:20px;margin:0 0 7px}
+.muted{color:var(--muted);font-size:13px;line-height:1.55}
+.section-label{margin:20px 0 8px;font-size:11px;font-weight:850;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.moves{max-height:190px;overflow:auto;background:#101820;border:1px solid var(--border);border-radius:12px;padding:9px}
+.moves ol{margin:0;padding-left:30px;columns:2;column-gap:22px}
+.moves li{padding:4px 2px;font-size:13px;break-inside:avoid}
+.moves li.latest{color:var(--yellow);font-weight:850}
+.move-empty{color:var(--muted);font-size:13px;padding:5px}
+.promotion{display:none;margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:12px}
+.promotion.show{display:block}
+.promotion-buttons{display:flex;gap:8px;margin-top:8px}
+.promotion-buttons button{flex:1;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:white;font-size:27px;padding:5px}
+.rules{border-top:1px solid var(--border);margin-top:18px;padding-top:15px}
+.rules h3{margin:0 0 8px;font-size:15px}
+.rules ul{padding-left:18px;margin:0;color:var(--muted);font-size:13px;line-height:1.8}
+footer{text-align:center;color:var(--muted);padding:30px 0;font-size:13px}
+footer strong{color:var(--white)}
+@media(max-width:760px){.layout{grid-template-columns:1fr;max-width:560px}.hero{padding-top:24px}.side{order:2}}
+@media(max-width:380px){main,nav{width:calc(100% - 20px)}.board{border-width:3px}.piece{font-size:clamp(21px,7vw,32px)}.card{padding:11px}.btn{padding:10px}}
+</style>
+</head>
+<body>
+<header>
+<nav>
+  <a class="brand" href="https://apps.otxs.de/">
+    <span class="brand-icon">O</span>
+    <span>OTXS <span style="color:var(--yellow)">GAMES</span><small>Discover. Play. Explore.</small></span>
+  </a>
+  <a href="https://apps.otxs.de/">← All Apps</a>
+</nav>
+</header>
+
+<main>
+<section class="hero">
+  <span class="tag">♟ OTXS Mini Games</span>
+  <h1>Classic <span>Chess</span></h1>
+  <p>A thoughtful match between two players. One board, one device.</p>
+</section>
+
+<section class="layout">
+  <div class="card">
+    <div class="status" role="status" aria-live="polite" id="status">
+      <span class="status-dot"></span>Loading chess engine…
+    </div>
+    <div class="player-bar">
+      <div class="player-pill active" id="whitePill"><strong>♔ White</strong><span>Player 1</span></div>
+      <div class="player-pill" id="blackPill"><strong>♚ Black</strong><span>Player 2</span></div>
+    </div>
+    <div class="board-wrap">
+      <div class="board" id="board" aria-label="Chess board"></div>
+    </div>
+    <div class="board-note">Tap a piece, then tap its destination square.</div>
+    <div class="promotion" id="promotion">
+      <strong>Choose your promotion</strong>
+      <div class="promotion-buttons" id="promotionButtons"></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="newGame">↻ New game</button>
+      <button class="btn secondary" id="undo">↶ Undo move</button>
+      <button class="btn secondary" id="flip">⇅ Flip board</button>
+    </div>
+  </div>
+
+  <aside class="card side">
+    <h2>Match details</h2>
+    <p class="muted">Play locally with a friend. Select your pieces to see legal moves and take turns until checkmate or a draw.</p>
+    <div class="section-label">Move history</div>
+    <div class="moves" id="moves"><div class="move-empty">Your moves will appear here.</div></div>
+    <div class="section-label">Game controls</div>
+    <p class="muted">• Select a piece to view its legal destinations.<br>
+    • Tap a highlighted square to move.<br>
+    • Use Undo to take back a move.<br>
+    • Flip the board to change your viewing side.</p>
+    <div class="rules">
+      <h3>Chess basics</h3>
+      <ul>
+        <li>White moves first.</li>
+        <li>Protect your king from check.</li>
+        <li>Checkmate wins the game.</li>
+        <li>Stalemate and other draw conditions end the game in a draw.</li>
+        <li>Castling, en passant and pawn promotion are supported.</li>
+      </ul>
+    </div>
+    <p class="muted" style="margin-top:17px">Powered by the open-source chess.js rules library.</p>
+  </aside>
+</section>
+
+<footer>
+  <strong>OTXS — Discover and Explore.</strong><br>
+  Free to play. No account required.
+  <p><a href="https://apps.otxs.de/">Explore more apps</a></p>
+</footer>
+</main>
+
+<script type="module">
+import { Chess } from "https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm";
+
+const game = new Chess();
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+const movesEl = document.getElementById("moves");
+const promotionEl = document.getElementById("promotion");
+const promotionButtons = document.getElementById("promotionButtons");
+
+const symbols = {
+  w: { k:"♔", q:"♕", r:"♖", b:"♗", n:"♘", p:"♙" },
+  b: { k:"♚", q:"♛", r:"♜", b:"♝", n:"♞", p:"♟" }
+};
+
+let selected = null;
+let legalMoves = [];
+let lastMove = null;
+let flipped = false;
+let pendingPromotion = null;
+
+function squareName(row, col) {
+  return "abcdefgh"[col] + (8 - row);
+}
+
+function coordinates(square) {
+  return {
+    row: 8 - Number(square[1]),
+    col: square.charCodeAt(0) - 97
+  };
+}
+
+function renderBoard() {
+  boardEl.innerHTML = "";
+
+  const checkedKing = game.isCheck()
+    ? game.board().flatMap((row, r) =>
+        row.map((piece, c) =>
+          piece && piece.type === "k" &&
+          piece.color === game.turn()
+            ? squareName(r, c) : null
+        )
+      ).find(Boolean)
+    : null;
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const actualRow = flipped ? 7 - row : row;
+      const actualCol = flipped ? 7 - col : col;
+      const square = squareName(actualRow, actualCol);
+      const piece = game.get(square);
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "square " +
+        ((actualRow + actualCol) % 2 === 0 ? "light" : "dark");
+      button.setAttribute("aria-label",
+        square + (piece ? ", " + piece.color + " " + piece.type : ""));
+
+      if (selected === square) button.classList.add("selected");
+      if (lastMove && (lastMove.from === square || lastMove.to === square)) {
+        button.classList.add("last-move");
+      }
+      if (checkedKing === square) button.classList.add("in-check");
+
+      if (piece) {
+        const glyph = document.createElement("span");
+        glyph.className = "piece " + (piece.color === "w" ? "white" : "black");
+        glyph.textContent = symbols[piece.color][piece.type];
+        button.appendChild(glyph);
+      }
+
+      if (legalMoves.some(move => move.to === square)) {
+        const hint = document.createElement("span");
+        hint.className = "hint";
+        if (piece) hint.classList.add("capture");
+        button.appendChild(hint);
+      }
+
+      if (actualCol === (flipped ? 7 : 0)) {
+        const rank = document.createElement("span");
+        rank.className = "coord rank";
+        rank.textContent = String(8 - actualRow);
+        button.appendChild(rank);
+      }
+
+      if (actualRow === (flipped ? 0 : 7)) {
+        const file = document.createElement("span");
+        file.className = "coord file";
+        file.textContent = "abcdefgh"[actualCol];
+        button.appendChild(file);
+      }
+
+      button.addEventListener("click", () => onSquareClick(square));
+      boardEl.appendChild(button);
+    }
+  }
+
+  document.getElementById("whitePill").classList.toggle(
+    "active", !game.isGameOver() && game.turn() === "w"
+  );
+  document.getElementById("blackPill").classList.toggle(
+    "active", !game.isGameOver() && game.turn() === "b"
+  );
+
+  updateStatus();
+  renderMoves();
+}
+
+function updateStatus(customMessage = "") {
+  if (customMessage) {
+    statusEl.innerHTML = '<span class="status-dot"></span>';
+    statusEl.append(document.createTextNode(customMessage));
+    return;
+  }
+
+  let message;
+
+  if (game.isCheckmate()) {
+    message = `Checkmate! ${game.turn() === "w" ? "Black" : "White"} wins.`;
+  } else if (game.isStalemate()) {
+    message = "Draw by stalemate.";
+  } else if (game.isThreefoldRepetition()) {
+    message = "Draw by threefold repetition.";
+  } else if (game.isInsufficientMaterial()) {
+    message = "Draw: insufficient material.";
+  } else if (game.isDraw()) {
+    message = "The game is a draw.";
+  } else if (game.isCheck()) {
+    message = `${game.turn() === "w" ? "White" : "Black"} is in check!`;
+  } else {
+    message = `${game.turn() === "w" ? "White" : "Black"} to move.`;
+  }
+
+  statusEl.innerHTML = '<span class="status-dot"></span>';
+  statusEl.append(document.createTextNode(message));
+}
+
+function renderMoves() {
+  const history = game.history();
+  if (!history.length) {
+    movesEl.innerHTML = '<div class="move-empty">Your moves will appear here.</div>';
+    return;
+  }
+
+  const list = document.createElement("ol");
+
+  for (let i = 0; i < history.length; i += 2) {
+    const li = document.createElement("li");
+    li.textContent = history[i] + (history[i + 1] ? "   " + history[i + 1] : "");
+    if (i >= history.length - 2) li.classList.add("latest");
+    list.appendChild(li);
+  }
+
+  movesEl.innerHTML = "";
+  movesEl.appendChild(list);
+  movesEl.scrollTop = movesEl.scrollHeight;
+}
+
+function onSquareClick(square) {
+  if (game.isGameOver() || pendingPromotion) return;
+
+  const piece = game.get(square);
+
+  if (selected && legalMoves.some(move => move.to === square)) {
+    const options = legalMoves.filter(move => move.to === square);
+    const promotionMove = options.find(move => move.promotion);
+
+    if (promotionMove) {
+      showPromotion(selected, square);
+      return;
+    }
+
+    makeMove(selected, square);
+    return;
+  }
+
+  if (piece && piece.color === game.turn()) {
+    selected = square;
+    legalMoves = game.moves({ square, verbose: true });
+    renderBoard();
+    return;
+  }
+
+  selected = null;
+  legalMoves = [];
+  renderBoard();
+}
+
+function showPromotion(from, to) {
+  pendingPromotion = { from, to };
+  promotionButtons.innerHTML = "";
+  const color = game.turn();
+
+  [
+    ["q", "Queen"], ["r", "Rook"],
+    ["b", "Bishop"], ["n", "Knight"]
+  ].forEach(([type, label]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = symbols[color][type];
+    button.setAttribute("aria-label", label);
+    button.addEventListener("click", () => {
+      const move = pendingPromotion;
+      pendingPromotion = null;
+      promotionEl.classList.remove("show");
+      makeMove(move.from, move.to, type);
+    });
+    promotionButtons.appendChild(button);
+  });
+
+  promotionEl.classList.add("show");
+}
+
+function makeMove(from, to, promotion) {
+  try {
+    const move = game.move({ from, to, ...(promotion ? { promotion } : {}) });
+    if (move) lastMove = { from: move.from, to: move.to };
+  } catch (error) {
+    updateStatus("That move is not legal.");
+  }
+
+  selected = null;
+  legalMoves = [];
+  renderBoard();
+}
+
+document.getElementById("newGame").addEventListener("click", () => {
+  game.reset();
+  selected = null;
+  legalMoves = [];
+  lastMove = null;
+  pendingPromotion = null;
+  promotionEl.classList.remove("show");
+  renderBoard();
+});
+
+document.getElementById("undo").addEventListener("click", () => {
+  if (game.undo()) {
+    selected = null;
+    legalMoves = [];
+    pendingPromotion = null;
+    promotionEl.classList.remove("show");
+    const history = game.history({ verbose: true });
+    lastMove = history.length
+      ? { from: history[history.length - 1].from, to: history[history.length - 1].to }
+      : null;
+    renderBoard();
+  } else {
+    updateStatus("No moves to undo.");
+  }
+});
+
+document.getElementById("flip").addEventListener("click", () => {
+  flipped = !flipped;
+  renderBoard();
+});
+
+renderBoard();
+</script>
+</body>
+</html>
+
